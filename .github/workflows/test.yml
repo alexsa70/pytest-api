@@ -26,6 +26,11 @@ jobs:
           python -m pip install --upgrade pip  # Обновляем pip до последней версии
           pip install -r requirements.txt  # Устанавливаем зависимости, указанные в requirements.txt
 
+      - name: Create .env file  # Создаём .env из GitHub Secrets
+        run: |
+          echo "FAKE_BANK_HTTP_CLIENT.URL=${{ secrets.FAKE_BANK_HTTP_CLIENT_URL }}" >> .env
+          echo "FAKE_BANK_HTTP_CLIENT.TIMEOUT=${{ secrets.FAKE_BANK_HTTP_CLIENT_TIMEOUT }}" >> .env
+
       - name: Run API tests with pytest and generate Allure results  # Запуск тестов
         run: |
           pytest -m regression --alluredir=allure-results --numprocesses 2
