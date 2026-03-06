@@ -1,4 +1,9 @@
 pytest
 httpx
 pydantic
-pytest-asyncio
+pydantic-settings
+allure-pytest
+faker
+jsonschema
+pytest-xdist
+eval_type_backport
