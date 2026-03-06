@@ -10,8 +10,9 @@ from tools.assertions.schema import validate_json_schema
 
 
 @pytest.mark.operations
-@pytest.mark.regression
 class TestOperations:
+    @pytest.mark.regression
+    @pytest.mark.xfail(reason="sampleapis.com contains records with corrupted date format")
     @allure.title("Get operations")
     def test_get_operations(self, operations_client: OperationsClient):
         response = operations_client.get_operations_api()
@@ -20,11 +21,12 @@ class TestOperations:
         validate_json_schema(
             response.json(), OperationsSchema.model_json_schema())
 
+    @pytest.mark.regression
     @allure.title("Get operation")
     def test_get_operation(
             self,
             operations_client: OperationsClient,
-            function_operation:     OperationSchema
+            function_operation: OperationSchema
     ):
         response = operations_client.get_operation_api(function_operation.id)
         operation = OperationSchema.model_validate_json(response.text)
@@ -34,6 +36,7 @@ class TestOperations:
 
         validate_json_schema(response.json(), operation.model_json_schema())
 
+    @pytest.mark.regression
     @allure.title("Create operation")
     def test_create_operation(self, operations_client: OperationsClient):
         request = CreateOperationSchema()
@@ -61,6 +64,7 @@ class TestOperations:
 
         validate_json_schema(response.json(), operation.model_json_schema())
 
+    @pytest.mark.regression
     @allure.title("Delete operation")
     def test_delete_operation(
             self,
