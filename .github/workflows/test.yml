@@ -29,7 +29,7 @@ jobs:
       - name: Create .env file  # Создаём .env из GitHub Secrets
         run: |
           echo "FAKE_BANK_HTTP_CLIENT.URL=${{ secrets.FAKE_BANK_HTTP_CLIENT_URL }}" >> .env
-          echo "FAKE_BANK_HTTP_CLIENT.TIMEOUT=${{ secrets.FAKE_BANK_HTTP_CLIENT_TIMEOUT }}" >> .env
+          echo "FAKE_BANK_HTTP_CLIENT.TIMEOUT=100" >> .env
 
       - name: Run API tests with pytest and generate Allure results  # Запуск тестов
         run: |
