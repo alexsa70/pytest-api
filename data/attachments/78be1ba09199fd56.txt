@@ -4,7 +4,7 @@ INFO     BASE_ASSERTIONS:base.py:19 Check that response status code equals to 20
 INFO     OPERATIONS_ASSERTIONS:operations.py:24 Check create operation
 INFO     BASE_ASSERTIONS:base.py:38 Check that "debit" equals to None
 INFO     BASE_ASSERTIONS:base.py:38 Check that "credit" equals to None
-INFO     BASE_ASSERTIONS:base.py:38 Check that "category" equals to taxi
-INFO     BASE_ASSERTIONS:base.py:38 Check that "description" equals to Support ago bag which line second.
-INFO     BASE_ASSERTIONS:base.py:38 Check that "transaction_date" equals to 2026-02-17
+INFO     BASE_ASSERTIONS:base.py:38 Check that "category" equals to restaurants
+INFO     BASE_ASSERTIONS:base.py:38 Check that "description" equals to Paper here analysis positive tough who onto campaign.
+INFO     BASE_ASSERTIONS:base.py:38 Check that "transaction_date" equals to 2026-02-07
 INFO     SCHEMA_ASSERTIONS:schema.py:24 Validating JSON schema
