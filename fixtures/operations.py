@@ -1,32 +1,28 @@
-from typing import Iterator
+from typing import AsyncIterator
 
-import pytest
+import pytest_asyncio
 
-from clients.operations_client import OperationsClient, get_operations_client
+from clients.base_client import get_http_client
+from clients.operations_client import OperationsClient
 from config import Settings
 from schema.operations import OperationSchema
 
 
-@pytest.fixture
-def operations_client(settings: Settings) -> OperationsClient:
+@pytest_asyncio.fixture
+async def operations_client(settings: Settings) -> AsyncIterator[OperationsClient]:
     """
-    Фикстура создаёт экземпляр API-клиента для работы с операциями.
-    
-    :param settings: Объект с настройками тестовой сессии.
-    :return: Экземпляр OperationsClient.
+    Фикстура создаёт асинхронный HTTP-клиент и оборачивает его в OperationsClient.
+    AsyncClient закрывается автоматически после теста.
     """
-    return get_operations_client(settings)
+    async with get_http_client(settings.fake_bank_http_client) as http_client:
+        yield OperationsClient(client=http_client)
 
 
-@pytest.fixture
-def function_operation(operations_client: OperationsClient) -> Iterator[OperationSchema]:
+@pytest_asyncio.fixture
+async def function_operation(operations_client: OperationsClient) -> AsyncIterator[OperationSchema]:
     """
-    Фикстура создаёт тестовую операцию перед тестом и удаляет её после выполнения теста.
-    
-    :param operations_client: API-клиент для работы с операциями.
-    :return: Созданная тестовая операция.
+    Фикстура создаёт тестовую операцию перед тестом и удаляет её после.
     """
-    operation = operations_client.create_operation()
+    operation = await operations_client.create_operation()
     yield operation
-
-    operations_client.delete_operation_api(operation.id)
+    await operations_client.delete_operation_api(operation.id)
