@@ -2,17 +2,9 @@ from enum import Enum
 
 
 class APIRoutes(str, Enum):
-    """
-    Перечисление всех URI-адресов API для проекта.
+    """Базовые маршруты API для шаблонного проекта."""
 
-    Это перечисление позволяет централизованно управлять всеми маршрутами API, 
-    что помогает избежать ошибок при их использовании и упрощает масштабирование.
-    """
-    CARDS = "/fakebank/cards"
-    CLIENTS = "/fakebank/clients"
-    OPERATIONS = "/fakebank/accounts"  # Основной URI для работы с операциями
-    STATEMENTS = "/fakebank/statements"
-    NOTIFICATIONS = "/fakebank/notifications"
+    RESOURCES = "/resources"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value

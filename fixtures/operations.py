@@ -1,28 +1,24 @@
 from typing import AsyncIterator
 
+import pytest
 import pytest_asyncio
 
 from clients.base_client import get_http_client
-from clients.operations_client import OperationsClient
+from clients.operations_client import ResourceClient
 from config import Settings
-from schema.operations import OperationSchema
+from schema.operations import CreateResourceSchema
 
 
 @pytest_asyncio.fixture
-async def operations_client(settings: Settings) -> AsyncIterator[OperationsClient]:
-    """
-    Фикстура создаёт асинхронный HTTP-клиент и оборачивает его в OperationsClient.
-    AsyncClient закрывается автоматически после теста.
-    """
-    async with get_http_client(settings.fake_bank_http_client) as http_client:
-        yield OperationsClient(client=http_client)
+async def resource_client(settings: Settings) -> AsyncIterator[ResourceClient]:
+    """Создает общий async HTTP-клиент и оборачивает его в ResourceClient."""
+
+    async with get_http_client(settings.api_http_client) as http_client:
+        yield ResourceClient(client=http_client)
 
 
-@pytest_asyncio.fixture
-async def function_operation(operations_client: OperationsClient) -> AsyncIterator[OperationSchema]:
-    """
-    Фикстура создаёт тестовую операцию перед тестом и удаляет её после.
-    """
-    operation = await operations_client.create_operation()
-    yield operation
-    await operations_client.delete_operation_api(operation.id)
+@pytest.fixture
+def sample_resource_payload() -> CreateResourceSchema:
+    """Возвращает шаблонный payload для POST-запросов."""
+
+    return CreateResourceSchema()

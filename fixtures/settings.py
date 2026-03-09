@@ -10,5 +10,3 @@ def settings() -> Settings:
    :return: Экземпляр класса Settings с загруженными конфигурациями.
    """
     return Settings()
-
-

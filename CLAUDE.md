@@ -1,93 +1,80 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Этот файл описывает правила и ориентиры для работы с кодом в этом репозитории.
 
-## Commands
+## Назначение проекта
+
+Репозиторий является чистым шаблоном для async API тестов.
+
+Базовый поток:
+
+```text
+Test -> Fixture -> ResourceClient -> BaseClient -> httpx.AsyncClient -> API
+```
+
+## Команды
 
 ```bash
-# Run all tests
+# Все тесты
 python -m pytest tests/
 
-# Run only regression tests (used in CI)
-python -m pytest tests/ -m regression
+# Шаблонные тесты
+python -m pytest tests/ -m template
 
-# Run a single test
-python -m pytest tests/test_operations.py::TestOperations::test_create_operation
+# Интеграционные тесты
+python -m pytest tests/ -m integration
 
-# Run tests by marker
-python -m pytest tests/ -m operations
-
-# Run with Allure report
+# Allure-отчет
 python -m pytest tests/ --alluredir=allure-results
 allure serve allure-results
 ```
 
-## Architecture
+## Текущая архитектура
 
-The project is an **async API test framework** built around pytest + httpx.AsyncClient.
+- `clients/base_client.py`
+  - универсальная обертка над `httpx.AsyncClient`
+  - содержит методы `get`, `post`, `patch`, `delete`
 
-### Request flow
+- `clients/operations_client.py`
+  - шаблонный доменный клиент `ResourceClient`
+  - содержит CRUD-методы для `APIRoutes.RESOURCES`
 
-```
-Test → Fixture (operations_client) → OperationsClient → BaseClient → httpx.AsyncClient → API
-```
+- `fixtures/settings.py`
+  - сессионная фикстура `settings`
 
-### Key design decisions
+- `fixtures/operations.py`
+  - async-фикстура `resource_client`
+  - фикстура `sample_resource_payload`
 
-**Two-level client pattern:**
+- `schema/operations.py`
+  - `CreateResourceSchema`, `UpdateResourceSchema`, `ResourceSchema`, `ResourcesSchema`
 
-- `BaseClient` (`clients/base_client.py`) — generic async HTTP wrapper (GET/POST/PATCH/DELETE) with Allure steps
-- `OperationsClient` (`clients/operations_client.py`) — domain-specific client, adds business methods like `create_operation()`
+## Конфигурация
 
-**AsyncClient lifecycle is managed in fixtures**, not in clients:
+Настройки загружаются из `.env` через `pydantic-settings`.
 
-```python
-# fixtures/operations.py
-async with get_http_client(settings.fake_bank_http_client) as http_client:
-    yield OperationsClient(client=http_client)
-```
+Используемые переменные:
 
-`get_http_client()` returns an `AsyncClient` instance (supports `async with`).
-
-**Event hooks must be `async def`** — `AsyncClient` awaits them. See `clients/event_hooks.py`.
-
-**Configuration** is loaded from `.env` via `pydantic-settings` with `env_nested_delimiter='.'`:
-
+```env
+API_HTTP_CLIENT.URL=https://api.example.com
+API_HTTP_CLIENT.TIMEOUT=30
 ```
 
-FAKE_BANK_HTTP_CLIENT.URL=https://...
-FAKE_BANK_HTTP_CLIENT.TIMEOUT=100
+## pytest
 
-```
-The `config/` package exports `Settings` and `HTTPClientConfig` from `config/__init__.py`. There is also a legacy `config.py` at the root — ignore it, the package takes precedence.
+- `asyncio_mode = auto` в `pytest.ini`
+- Маркеры:
+  - `template` — базовые шаблонные проверки
+  - `integration` — тесты реального API
 
-**Schema naming convention:**
+## Что важно при развитии проекта
 
-- `OperationSchema` — single item (has `id: str | int`)
-- `OperationsSchema` — list container (`RootModel[list[OperationSchema]]`)
+- Держать `BaseClient` универсальным и без бизнес-логики.
+- Бизнес-методы добавлять только в доменные клиенты.
+- Фикстуры должны управлять жизненным циклом `AsyncClient`.
+- Любые новые endpoint и контракты сначала отражать в `tools/routes.py` и `schema/`.
 
-**`id` is `str | int`** — the external API (sampleapis.com) returns string IDs for new records.
-
-### pytest config
-
-- `asyncio_mode = auto` in `pytest.ini` — all `async def` tests and fixtures run automatically, no `@pytest.mark.asyncio` needed
-- Fixtures are registered via `pytest_plugins` in `conftest.py`
-- Markers: `regression` (runs in CI), `operations` (all operation tests)
-
-### Known API limitations (sampleapis.com)
-
-- `test_get_operations` is marked `xfail` — API contains a record with invalid date `'09/02/206'`
-- `test_update_operation` has no `regression` marker — PATCH endpoint doesn't actually update records
-
-### Contracts
-
-При обновлении контрактов обязательно поднимать версию в `package.json`.
-
-### Python 3.9 compatibility
-
-Files using `X | Y` union syntax require `from __future__ import annotations` at the top. The `eval_type_backport` package is also required for Pydantic v2 to resolve these annotations at runtime.
-
-### Agents roles
+## Agents roles
 
 **python-expert**: Для код-ревью, планирования фич и соблюдения стиля.
 **python-debugger**: Только для исправления ошибок и анализа падений.

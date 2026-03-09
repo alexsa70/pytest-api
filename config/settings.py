@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class HTTPClientConfig(BaseModel):
+    """Настройки HTTP-клиента."""
+
     url: HttpUrl
     timeout: float
 
@@ -12,12 +14,12 @@ class HTTPClientConfig(BaseModel):
 
 
 class Settings(BaseSettings):
+    """Настройки проекта, загружаются из `.env`."""
+
     model_config = SettingsConfigDict(
-        env_file='.env',
-        env_file_encoding='utf-8',
-        env_nested_delimiter='.'
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_nested_delimiter=".",
     )
 
-    fake_bank_http_client: HTTPClientConfig
-
-
+    api_http_client: HTTPClientConfig

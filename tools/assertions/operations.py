@@ -2,44 +2,30 @@ from __future__ import annotations
 
 import allure
 
-from schema.operations import CreateOperationSchema, OperationSchema, UpdateOperationSchema
+from schema.operations import CreateResourceSchema, ResourceSchema, UpdateResourceSchema
 from tools.assertions.base import assert_equal
 from tools.logger import get_logger
 
-logger = get_logger("OPERATIONS_ASSERTIONS")
+logger = get_logger("RESOURCE_ASSERTIONS")
 
 
-@allure.step("Check create operation")
-def assert_create_operation(
-        actual: OperationSchema,
-        expected: CreateOperationSchema | UpdateOperationSchema
-):
-    """
-    Проверяет, что данные, возвращённые API после создания/обновления операции, соответствуют ожидаемым.
+@allure.step("Check resource fields")
+def assert_resource_fields(
+    actual: ResourceSchema,
+    expected: CreateResourceSchema | UpdateResourceSchema,
+) -> None:
+    logger.info("Check resource fields")
 
-    :param: actual (OperationSchema): Фактические данные операции.
-    :param: expected (CreateOperationSchema | UpdateOperationSchema): Ожидаемые данные.
-    :raises: AssertionError: Если значения полей не совпадают.
-    """
-    logger.info("Check create operation")
-
-    assert_equal(actual.debit, expected.debit, "debit")
-    assert_equal(actual.credit, expected.credit, "credit")
-    assert_equal(actual.category, expected.category, "category")
-    assert_equal(actual.description, expected.description, "description")
-    assert_equal(actual.transaction_date,
-                 expected.transaction_date, "transaction_date")
+    if expected.name is not None:
+        assert_equal(actual.name, expected.name, "name")
+    if expected.description is not None:
+        assert_equal(actual.description, expected.description, "description")
 
 
-@allure.step("Check operation")
-def assert_operation(actual: OperationSchema, expected: OperationSchema):
-
-    logger.info("Check operation")
+@allure.step("Check resource identity")
+def assert_resource(actual: ResourceSchema, expected: ResourceSchema) -> None:
+    logger.info("Check resource identity")
 
     assert_equal(actual.id, expected.id, "id")
-    assert_equal(actual.debit, expected.debit, "debit")
-    assert_equal(actual.credit, expected.credit, "credit")
-    assert_equal(actual.category, expected.category, "category")
+    assert_equal(actual.name, expected.name, "name")
     assert_equal(actual.description, expected.description, "description")
-    assert_equal(actual.transaction_date,
-                 expected.transaction_date, "transaction_date")
