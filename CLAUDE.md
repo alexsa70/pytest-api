@@ -9,7 +9,7 @@
 Базовый поток:
 
 ```text
-Test -> Fixture -> ResourceClient -> BaseClient -> httpx.AsyncClient -> API
+Test -> Fixture -> APIClient -> BaseClient -> httpx.AsyncClient -> API
 ```
 
 ## Команды
@@ -36,18 +36,18 @@ allure serve allure-results
   - содержит методы `get`, `post`, `patch`, `delete`
 
 - `clients/operations_client.py`
-  - шаблонный доменный клиент `ResourceClient`
-  - содержит CRUD-методы для `APIRoutes.RESOURCES`
+  - шаблонный доменный клиент `APIClient`
+  - содержит метод `authenticate_api` для `APIRoutes.AUTHENTICATE`
 
 - `fixtures/settings.py`
   - сессионная фикстура `settings`
 
 - `fixtures/operations.py`
-  - async-фикстура `resource_client`
-  - фикстура `sample_resource_payload`
+  - async-фикстура `api_client`
+  - фикстура `auth_payload`
 
 - `schema/operations.py`
-  - `CreateResourceSchema`, `UpdateResourceSchema`, `ResourceSchema`, `ResourcesSchema`
+  - `AuthenticateRequestSchema`, `AuthenticateResponseSchema`
 
 ## Конфигурация
 
@@ -58,6 +58,8 @@ allure serve allure-results
 ```env
 API_HTTP_CLIENT.URL=https://api.example.com
 API_HTTP_CLIENT.TIMEOUT=30
+AUTH_CREDENTIALS.EMAIL=your-email@example.com
+AUTH_CREDENTIALS.PASSWORD=your-password
 ```
 
 ## pytest

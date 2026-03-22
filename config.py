@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,6 +15,13 @@ class HTTPClientConfig(BaseModel):
         return str(self.url)
 
 
+class AuthCredentialsConfig(BaseModel):
+    """Учетные данные для authentication endpoint."""
+
+    email: str
+    password: str
+
+
 class Settings(BaseSettings):
     """Настройки проекта, загружаются из `.env`."""
 
@@ -23,3 +32,5 @@ class Settings(BaseSettings):
     )
 
     api_http_client: HTTPClientConfig
+    auth_credentials: Optional[AuthCredentialsConfig] = None
+    org_id: Optional[int] = None 

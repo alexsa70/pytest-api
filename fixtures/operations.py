@@ -2,23 +2,46 @@ from typing import AsyncIterator
 
 import pytest
 import pytest_asyncio
+from http import HTTPStatus
 
 from clients.base_client import get_http_client
-from clients.operations_client import ResourceClient
+from clients.operations_client import APIClient
 from config import Settings
-from schema.operations import CreateResourceSchema
+from schema.operations import AuthenticateRequestSchema, AuthenticateResponseSchema
+from tools.assertions.base import assert_status_code
 
 
 @pytest_asyncio.fixture
-async def resource_client(settings: Settings) -> AsyncIterator[ResourceClient]:
-    """Создает общий async HTTP-клиент и оборачивает его в ResourceClient."""
+async def api_client(settings: Settings) -> AsyncIterator[APIClient]:
+    """Создает общий async HTTP-клиент и оборачивает его в APIClient."""
 
     async with get_http_client(settings.api_http_client) as http_client:
-        yield ResourceClient(client=http_client)
+        yield APIClient(client=http_client)
 
 
-@pytest.fixture
-def sample_resource_payload() -> CreateResourceSchema:
-    """Возвращает шаблонный payload для POST-запросов."""
+@pytest.fixture(scope="session")
+def auth_payload(settings: Settings) -> AuthenticateRequestSchema:
+    """Формирует payload для POST /authenticate из переменных окружения."""
 
-    return CreateResourceSchema()
+    if settings.auth_credentials is None:
+        pytest.skip("AUTH_CREDENTIALS не настроены в .env")
+
+    return AuthenticateRequestSchema(
+        email=settings.auth_credentials.email,
+        password=settings.auth_credentials.password,
+    )
+
+
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def auth_token(
+    settings: Settings,
+    auth_payload: AuthenticateRequestSchema,
+) -> str:
+    """Получает token один раз на сессию тестов."""
+
+    async with get_http_client(settings.api_http_client) as http_client:
+        client = APIClient(client=http_client)
+        response = await client.authenticate_api(auth_payload)
+        assert_status_code(response.status_code, HTTPStatus.OK)
+        auth_response = AuthenticateResponseSchema.model_validate_json(response.text)
+        return auth_response.data.token

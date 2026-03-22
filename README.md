@@ -1,81 +1,53 @@
 # Async API Test Template (pytest)
 
-Чистый шаблон для асинхронного тестирования API на `pytest + pytest-asyncio + httpx.AsyncClient`.
+Шаблон для асинхронного тестирования API на `pytest + pytest-asyncio + httpx.AsyncClient`.
 
-Проект больше не привязан к конкретному сервису или текущим тест-кейсам. Внутри оставлен каркас, который нужно адаптировать под ваш API.
+## Пример: перенос cURL в template
 
-## Стек
+Исходный запрос:
 
-- Python 3.9+
-- pytest
-- pytest-asyncio
-- httpx
-- pydantic
-- pydantic-settings
-- allure-pytest
-- faker
-- jsonschema
+```bash
+curl --location 'https://api.stage2.surfsight.net/v2/authenticate' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "email": "your-email@example.com",
+  "password": "your-password"
+}'
+```
+
+Что этому соответствует в проекте:
+
+1. `URL` и `timeout` в `.env`
+2. endpoint в `tools/routes.py` (`AUTHENTICATE = "/authenticate"`)
+3. body-схема в `schema/operations.py` (`AuthenticateRequestSchema`)
+4. метод клиента в `clients/operations_client.py` (`authenticate_api`)
+5. фикстура payload из `.env` в `fixtures/operations.py` (`auth_payload`)
+6. integration-тест в `tests/test_operations.py` (`test_authenticate`)
 
 ## Установка
 
 ```bash
 python -m venv venv
-source venv/bin/activate  # macOS/Linux
-# venv\Scripts\activate   # Windows
-
+source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 ```
 
-## Конфигурация
-
-`.env` использует вложенные переменные:
+## Настройка `.env`
 
 ```env
-API_HTTP_CLIENT.URL=https://api.example.com
+API_HTTP_CLIENT.URL=https://api.stage2.surfsight.net/v2
 API_HTTP_CLIENT.TIMEOUT=30
+AUTH_CREDENTIALS.EMAIL=your-email@example.com
+AUTH_CREDENTIALS.PASSWORD=your-password
 ```
 
 ## Запуск
 
 ```bash
-# Все тесты
-python -m pytest tests/
-
-# Только шаблонные
+# Локальные (без сети)
 python -m pytest tests/ -m template
 
-# Только интеграционные
+# Интеграционные (реальный API)
 python -m pytest tests/ -m integration
-
-# Allure
-python -m pytest tests/ --alluredir=allure-results
-allure serve allure-results
-```
-
-## Что уже есть в каркасе
-
-- `clients/base_client.py` — базовый async HTTP клиент (GET/POST/PATCH/DELETE)
-- `clients/operations_client.py` — шаблонный `ResourceClient` для CRUD
-- `fixtures/operations.py` — фикстура `resource_client`
-- `schema/operations.py` — базовые Pydantic-схемы ресурса
-- `tests/test_operations.py` — минимальный локальный тест + пример integration-теста (skip)
-
-## Как адаптировать под свой API
-
-1. Обновить маршруты в `tools/routes.py`.
-2. Подстроить модели в `schema/operations.py` под контракт API.
-3. Изменить/добавить методы в `clients/operations_client.py`.
-4. Переписать `tests/test_operations.py` под ваши сценарии.
-5. Убрать `@pytest.mark.skip` с integration-тестов после настройки endpoint.
-
-## Структура
-
-```text
-├── tests/
-├── fixtures/
-├── clients/
-├── schema/
-├── tools/
-└── config/
 ```

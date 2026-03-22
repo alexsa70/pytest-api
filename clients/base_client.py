@@ -19,8 +19,8 @@ class BaseClient:
         self.client = client
 
     @allure.step("Make GET request to {url}")
-    async def get(self, url: URL | str, params: QueryParams | None = None) -> Response:
-        return await self.client.get(url, params=params)
+    async def get(self, url: URL | str, params: QueryParams | None = None, headers: dict | None = None) -> Response:
+        return await self.client.get(url, params=params, headers=headers)
 
     @allure.step("Make POST request to {url}")
     async def post(

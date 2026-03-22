@@ -4,46 +4,34 @@ import allure
 from httpx import Response
 
 from clients.base_client import BaseClient
-from schema.operations import CreateResourceSchema, ResourceSchema, UpdateResourceSchema
+from schema.operations import AuthenticateRequestSchema
+from schema.organizations import OrganizationRetrieveSchema
+from schema.devices import DevicesMetaDataSchema
 from tools.routes import APIRoutes
 
 
-class ResourceClient(BaseClient):
-    """Шаблонный асинхронный клиент для CRUD-операций с ресурсом."""
+class APIClient(BaseClient):
+    """Шаблонный async API-клиент."""
 
-    @allure.step("Get resources list")
-    async def list_resources_api(self) -> Response:
-        return await self.get(APIRoutes.RESOURCES)
-
-    @allure.step("Get resource by id {resource_id}")
-    async def get_resource_api(self, resource_id: str | int) -> Response:
-        return await self.get(f"{APIRoutes.RESOURCES}/{resource_id}")
-
-    @allure.step("Create resource")
-    async def create_resource_api(self, payload: CreateResourceSchema) -> Response:
+    @allure.step("Authenticate user")
+    async def authenticate_api(self, payload: AuthenticateRequestSchema) -> Response:
         return await self.post(
-            APIRoutes.RESOURCES,
-            json=payload.model_dump(mode="json", by_alias=True),
+            APIRoutes.AUTHENTICATE,
+            json=payload.model_dump(mode="json"),
         )
 
-    @allure.step("Update resource by id {resource_id}")
-    async def update_resource_api(
-        self,
-        resource_id: str | int,
-        payload: UpdateResourceSchema,
-    ) -> Response:
-        return await self.patch(
-            f"{APIRoutes.RESOURCES}/{resource_id}",
-            json=payload.model_dump(mode="json", by_alias=True, exclude_none=True),
+    @allure.step("Organizations: retrieve organization by id")
+    async def organizations_retrieve(self, payload: OrganizationRetrieveSchema, token: str) -> Response:
+        return await self.get(
+            APIRoutes.ORGANIZATIONS_RETRIEVE.format(id=payload.id),
+            headers={"Request-ID": str(payload.requestId),
+                     "Authorization": f"Bearer {token}"},
         )
 
-    @allure.step("Delete resource by id {resource_id}")
-    async def delete_resource_api(self, resource_id: str | int) -> Response:
-        return await self.delete(f"{APIRoutes.RESOURCES}/{resource_id}")
-
-    async def create_resource(self) -> ResourceSchema:
-        """Вспомогательный метод для создания сущности из дефолтного payload."""
-
-        payload = CreateResourceSchema()
-        response = await self.create_resource_api(payload)
-        return ResourceSchema.model_validate_json(response.text)
+    @allure.step("Devices: retrieve device metadata by IMEI")
+    async def devices_metadata(self, payload: DevicesMetaDataSchema, token: str) -> Response:
+        return await self.get(
+            APIRoutes.DEVICES_METADATA.format(IMEI=payload.IMEI),
+            headers={"Request-ID": str(payload.requestId),
+                     "Authorization": f"Bearer {token}"},
+        )

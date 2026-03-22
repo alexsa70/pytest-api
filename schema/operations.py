@@ -1,35 +1,25 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel
+from uuid import UUID
 
-from tools.fakers import fake
-
-
-class CreateResourceSchema(BaseModel):
-    """Модель для создания сущности в API."""
-
-    model_config = ConfigDict(populate_by_name=True)
-
-    name: str = Field(default_factory=fake.word)
-    description: str = Field(default_factory=fake.sentence)
+from pydantic import BaseModel, ConfigDict
 
 
-class UpdateResourceSchema(BaseModel):
-    """Модель для частичного обновления сущности."""
+class AuthenticateRequestSchema(BaseModel):
+    """Тело запроса для POST /authenticate."""
 
-    model_config = ConfigDict(populate_by_name=True)
-
-    name: str | None = None
-    description: str | None = None
+    email: str
+    password: str
 
 
-class ResourceSchema(CreateResourceSchema):
-    """Модель сущности, возвращаемой API."""
+class AuthenticateResponseSchema(BaseModel):
+    """Ответ от authentication endpoint."""
 
-    id: str | int
+    class AuthDataSchema(BaseModel):
+        token: str
+        organizationId: int
 
+    data: AuthDataSchema
+    requestId: UUID
 
-class ResourcesSchema(RootModel):
-    """Контейнер для списка сущностей."""
-
-    root: list[ResourceSchema]
+    model_config = ConfigDict(extra="forbid")

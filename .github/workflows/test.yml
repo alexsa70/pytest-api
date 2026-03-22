@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -26,7 +26,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "API_HTTP_CLIENT.URL=${{ secrets.API_BASE_URL || 'https://api.example.com' }}" >> .env
+          echo "API_HTTP_CLIENT.URL=${{ secrets.API_HTTP_CLIENT.URL || 'https://api.example.com' }}" >> .env
           echo "API_HTTP_CLIENT.TIMEOUT=30" >> .env
 
       - name: Run template tests and generate Allure results
